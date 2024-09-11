@@ -7,7 +7,7 @@ const registerUser = async (req, res) => {
   const { name, email, password } = req.body; //User se laya  
   try {
     // First finding if User already exists 
-    let user = User.findOne({ email }); //mongodb ka findOne 
+    let user = await User.findOne({ email }); //mongodb ka findOne 
     if (user) {
       return res.staus(400).json({ msg: "User already exists" }); //msg return
     }
@@ -23,7 +23,7 @@ const registerUser = async (req, res) => {
     await user.save();
 
     //setup of JWT
-    const payload = { user: { id: user_id } };
+    const payload = { user: { id: user._id } };
     jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 360000 }, (err, token) => {
       if (err) throw err;
       res.json({ token })
@@ -33,6 +33,7 @@ const registerUser = async (req, res) => {
     // catch block
   } catch (err) {
     console.log(err.message);
+    res.status(500).send("Server Error");
   }
 }
 
@@ -40,7 +41,7 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
-    let user = User.findOne({ email });
+    let user = await User.findOne({ email });
     if (!user) {
       return res.staus(400).json({ msg: "Invalid creadentials" });
     }
@@ -48,7 +49,7 @@ const loginUser = async (req, res) => {
     if (!isMatch) {
       return res.staus(400).json({ msg: "Invalid credentials" });
     }
-    const payload = { user: { id: user_id } };
+    const payload = { user: { id: user._id } };
     jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 360000 },
       (err, token) => {
         if (err) throw err;
@@ -56,7 +57,7 @@ const loginUser = async (req, res) => {
       });
   } catch (err) {
     console.log(err.message);
-    res.staus(500).send("Server Error", err)
+    res.staus(500).send("Server Error")
   }
 }
 
